@@ -20,4 +20,4 @@ def post_list(request):
     # '''.format(name=my_name, method=http_method, header=request.headers['user-agent'], my_path=request.path))
     # return render(request, 'blog/post_list.html')
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
-    return render(request, 'blog/post_list.html', {'post_list': posts}, name='post_list_home')
+    return render(request, 'blog/post_list.html', {'post_list': posts})
