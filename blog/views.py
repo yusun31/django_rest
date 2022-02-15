@@ -1,8 +1,31 @@
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
 from .models import Post
+from .forms import PostModelForm
+
+
+# 글 등록
+def post_new(request):
+    if request.method == "POST":
+        # 등록 요청(등록버튼을 눌렀을 경우)
+        post_form = PostModelForm(request.POST)
+        if post_form.is_valid():  # 검증 logic을 통과하면
+            # form 객체의 save 를 호출하면 Model 객체 생성
+            post = post_form.save(commit=False)  # commit=False : 바로 저장하지 않음
+            # 로그인된 username -> 작성자(author) 필드에 저장
+            post.author = request.user
+            # 현재 날짜와 시간을 게시일자(published_date) 필드에 저장
+            post.published_date = timezone.now()
+            # post 객체가 저장 + insert
+            post.save()
+            # 등록 후 상세페이지로 바로 이동
+            return redirect('post_detail', pk=post.pk)
+    else:
+        # 등록을 하기 위한 form 띄우기
+        post_form = PostModelForm()
+    return render(request, 'blog/post_edit.html', {'postform': post_form})
 
 
 # 글 상세정보
