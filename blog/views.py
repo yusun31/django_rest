@@ -2,9 +2,28 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 from .models import Post, Comment
 from .forms import PostModelForm, PostForm, CommentForm
+
+
+# 글 목록 Pagination
+def post_list(request):
+    post_queryset = Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
+    # Paginator 객체 생성
+    paginator = Paginator(post_queryset, 2)
+    try:
+        # page number(페이지 번호)를 화면에서 쿼리스트링으로 전달받음
+        page_number = request.GET.get('page')
+        # 전달받은 페이지 번호로 Page 객체 생성
+        page = paginator.page(page_number)
+    except PageNotAnInteger:
+        page = paginator.page(1)
+    except EmptyPage:
+        page = paginator.page(paginator.num_pages)
+
+    return render(request, 'blog/post_list.html', {'post_list': page})
 
 
 # 댓글 승인
@@ -114,7 +133,7 @@ def post_detail(request, pk):
 
 
 # 글 목록(Post list)
-def post_list(request):
+def post_list_first(request):
     # Create your views here.
     # Views 내에 선언된 함수 -> 인자로 HttpRequest 라는 객체를 Django 가 전달
     my_name = '장고웹프레임워크'
